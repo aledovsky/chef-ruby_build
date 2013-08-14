@@ -67,3 +67,8 @@ git src_path do #~FC043 exception to support AWS OpsWorks using an older Chef
 
   notifies :run, resources(:execute => "Install ruby-build"), :immediately
 end
+
+directory '/tmp/chef-solo/ruby-build' do
+  action :delete
+  recursive true
+end
