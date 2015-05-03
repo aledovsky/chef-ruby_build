@@ -18,8 +18,14 @@
 #
 
 cores         = node['cpu']['total'].to_i
-system_rubies = %w{ 1.9.2-p320 1.9.3-p362 2.0.0-p0 2.1.0 2.2.2
-                    jruby-1.7.1 rbx-2.1.1 }
+
+system_rubies = %w(
+  1.9.3-p551
+  2.0.0-p645
+  2.1.6
+  2.2.2
+  jruby-1.7.19
+)
 
 include_recipe "java"
 
@@ -27,33 +33,8 @@ if %{ubuntu debian}.include?(node['platform'])
   package "default-jre-headless"
 end
 
-log "Forcing update of java alternatives" do
-  notifies :create, "ruby_block[update-java-alternatives]", :immediately
-end
-
 system_rubies.each do |rubie|
   ruby_build_ruby rubie do
     environment({ 'MAKE_OPTS' => "-j #{cores + 1}" })
   end
-end
-
-# Woah, REE, crazy bananas! For more details see:
-# * https://github.com/sstephenson/rbenv/issues/297
-# * https://github.com/sstephenson/ruby-build/issues/186
-ruby_build_ruby "ree-1.8.7-2012.02" do
-  environment({
-    'MAKE_OPTS'       => "-j #{cores + 1}",
-    'CONFIGURE_OPTS'  => "--no-tcmalloc",
-  })
-end
-
-user_account "app" do
-  home "/home/app"
-end
-
-ruby_build_ruby "1.8.7-p371" do
-  prefix_path "/home/app/.rubies/ruby-1.8.7-p371"
-  user        "app"
-  group       "app"
-  environment({ 'MAKE_OPTS' => "-j #{cores + 1}" })
 end
