@@ -73,3 +73,8 @@ git src_path do #~FC043 exception to support AWS OpsWorks using an older Chef
     ::File.exists?("/usr/local/bin/ruby-build") && upgrade_strategy == "none"
   end
 end
+
+directory '/tmp/chef-solo/ruby-build' do
+  action :delete
+  recursive true
+end
