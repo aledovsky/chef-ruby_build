@@ -50,16 +50,21 @@ def perform_install
 
     rubie       = @rubie        # bypass block scoping issue
     prefix_path = @prefix_path  # bypass block scoping issue
-    patch       = @patch if @patch && ::File.exists?(@patch)
+    patch       = @patch
 
     keep_headers = '-k'         # this will force ruby-build to keep ruby headers
+    cmd          = %{/usr/local/bin/ruby-build "#{rubie}" "#{prefix_path}"}
+
+    if patch
+      patch_path = "#{Chef::Config[:file_cache_path]}/#{patch}"
+      cookbook_file patch_path do
+        source patch
+      end.run_action(:create_if_missing)
+      cmd = %{/usr/local/bin/ruby-build --patch "#{rubie}" "#{prefix_path}" "#{keep_headers}" < "#{patch_path}"}
+    end
 
     execute "ruby-build[#{rubie}]" do
-      if patch
-        command  %{cat #{patch} | /usr/local/bin/ruby-build -p "#{rubie}" "#{prefix_path}" "#{keep_headers}"}
-      else
-        command  %{/usr/local/bin/ruby-build "#{rubie}" "#{prefix_path}" "#{keep_headers}"}
-      end
+      command     cmd
       user        new_resource.user         if new_resource.user
       group       new_resource.group        if new_resource.group
       environment new_resource.environment  if new_resource.environment
